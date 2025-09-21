@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <sys/mman.h>
 #include <unistd.h>
-
+#include <stdint.h>
 #include <stdio.h> // TODO  : a supprimer
 
 #define TINY 16
@@ -15,6 +15,7 @@
 #define HEADER_SIZE 32
 #define SIZE_OF_BITMAP 32
 #define BITMAP_LAST_INDEX 256
+#define PAGE_SIZE 4096
 
 enum e_operation {
 	MALLOC,
@@ -22,20 +23,26 @@ enum e_operation {
 	REALLOC,
 };
 
-// 32 octets
 struct s_header_page {
-	size_t	size_of_fragments;			// Taille d'un fragment
 	int		free_fragments_remaining;	// Nb de fragments libre restant
 	char	*fragments_start;			// Free fragment : Pointeur sur un fragment libre ou NULL si le bloc est rempli
 	char	*next_page;					// Page memoire suivante si besoin
 };
 
 struct s_header_large_page {
-	size_t	size;
 	char	*previous_page;
 	char	*next_page;
 };
 
+struct s_header
+{
+	size_t	size;	// 8 octets
+	union {			// 24 octets max
+		struct s_header_page		normal_size;
+		struct s_header_large_page	large_size;
+	} body;
+};
+// 32 octets
 
 void	free(void *ptr);
 void	*malloc(size_t size);

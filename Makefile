@@ -10,6 +10,7 @@ SRCS			= \
 				tiny_size.c \
 				small_size.c \
 				large_size.c \
+				free.c \
 				
 SRC				= $(addprefix src/, $(SRCS))
 OBJS			= $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
