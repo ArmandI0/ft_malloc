@@ -11,18 +11,28 @@
 
 #include <unistd.h>
 #include <stdio.h>
-#include <sys/mman.h>
+#include "../include/malloc.h"
 
 int main() {
 
-	int page_size = getpagesize();
-	void *ptr = mmap(NULL, page_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-	if (!ptr) {
-		return -1;
+	char *test = malloc(200);
+	if (test == NULL) {
+		printf("CONNARD");
+		return 1;
 	}
-	else {
-		printf("toto\n");
+
+	for (int i = 0; i < 8; i++) {
+		printf("%d\n", i);
+		test[i] = 'c';
 	}
-	munmap(ptr, page_size);
+
+	for (int i = 0; i < 100000; i++) {
+		printf("%d\n", i);
+		test = malloc(250000);
+		if (test == NULL) {
+			printf("MALLOC ERROR\n");
+			return 0;
+		}
+	}
 	return 0;
 }

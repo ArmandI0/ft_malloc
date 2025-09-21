@@ -5,6 +5,11 @@ OBJ_DIR			= obj
 
 SRCS			= \
 				main.c \
+				malloc.c \
+				utils.c \
+				tiny_size.c \
+				small_size.c \
+				large_size.c \
 				
 SRC				= $(addprefix src/, $(SRCS))
 OBJS			= $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
