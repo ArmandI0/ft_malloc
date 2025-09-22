@@ -1,5 +1,26 @@
 #include "../include/malloc.h"
 
+#define NB_BLOC = 20;
+
+char *malloc_op(char *memory, int bloc_size) {
+	struct s_main_header	*header = (struct s_main_header *)memory;
+	struct s_bloc_header	*bloc_header = (struct s_bloc_header *)(memory + HEADER_SIZE);
+	struct s_bloc_header	*new_bloc_header;
+	char					*ptr_allocated = NULL;
+
+	while (true) {
+		for (int i = 0; i < NB_OF_TINY_BLOCS; i++) {
+			if (bloc_header->allocated = 0) { // Bloc allocation
+				ptr_allocated = (char *)(bloc_header + HEADER_SIZE);
+				bloc_header->allocated = 1;
+	
+			}
+	
+		}
+	}
+}
+
+
 char *init_tiny_map() {
 	char					*memory = NULL;
 	int						page_size = getpagesize();

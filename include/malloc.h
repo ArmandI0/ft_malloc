@@ -9,11 +9,13 @@
 #include <stdio.h> // TODO  : a supprimer
 #include <stdint.h>
 
-#define TINY 16
+#define TINY 128
+#define NB_OF_TINY_BLOCS 199
+
 #define SMALL 256
 #define LARGE 1000
 
-#define HEADER_SIZE 32
+#define HEADER_SIZE 16
 #define SIZE_OF_BITMAP 32
 #define BITMAP_LAST_INDEX 256
 #define PAGE_SIZE 4096

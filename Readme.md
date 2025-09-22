@@ -14,3 +14,9 @@
 [Header secondaire]
 - uint_8    free;
 - char *    head;
+
+
+TINY malloc = 128
+
+il faut allouer 7 page pour que ca tombe rond avec le header 
+(28672 - 16 ) / 144 = 199 page
