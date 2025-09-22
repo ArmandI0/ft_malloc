@@ -34,7 +34,6 @@ char *malloc_operation(char *memory, int fragment_size) {
 		header = (struct s_header *)memory_page;
 		next_memory_page = header->body.normal_size.next_page;
 	}
-	printf("CACA\n");
 	return NULL;
 }
 

@@ -3,8 +3,11 @@
 SRC_DIR			= src
 OBJ_DIR			= obj
 
+ifeq ($(HOSTTYPE),)
+	HOSTTYPE := $(shell uname -m)_$(shell uname -s)
+endif
+
 SRCS			= \
-				main.c \
 				malloc.c \
 				utils.c \
 				tiny_size.c \
@@ -18,9 +21,9 @@ D_OBJS			= mkdir -p $(@D)
 
 #-UTILS-#
 
-CC 				= cc
+CC 				= gcc
 CFLAGS 			= -Wall -Wextra -Werror -g 
-NAME 			= ft_ping
+NAME 			= libft_malloc_$(HOSTTYPE).so
 RM 				= rm -f
 RMR				= rm -rf
 
@@ -33,7 +36,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 				$(CC) $(CFLAGS) -c -o $@ $<
 
 $(NAME): 		$(OBJS)
-				@$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
+				@$(CC) $(CFLAGS) -shared $(OBJS) -o $(NAME)
 				
 clean:
 				@$(RMR) $(OBJ_DIR)
