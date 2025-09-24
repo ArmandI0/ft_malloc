@@ -1,42 +1,87 @@
 #include "../include/malloc.h"
 
+static char *init_map() {
+	char					*memory = NULL;
+	int						page_size = getpagesize() * NB_TINY_PAGE;
+	struct s_main_header	header;
+	struct s_bloc_header	bloc_header;
 
-char *malloc_operation(char *memory, int fragment_size) {
-	struct s_header			*header = (struct s_header *)memory;
-	char					*next_memory_page = header->body.normal_size.next_page;
-	char					*memory_page = memory;
+	memory = mmap(NULL, page_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	if (!memory)
+			return NULL;
+	struct test	test;
 
+	// Init main header
+	header.size = TINY;
+	header.next = NULL;
+	// ft_memcpy(memory, &header, sizeof(struct s_main_header));
 
-	while (header)
-	{
-		print_bitmap(memory + HEADER_SIZE, 32);
-		if (header->body.normal_size.free_fragments_remaining > 0) {
-			for (int i = 0; i < BITMAP_LAST_INDEX; i++) {
-				if (get_bitmap(memory_page + HEADER_SIZE, i) == false) {
-					header->body.normal_size.free_fragments_remaining--;
-					set_bitmap(memory_page + HEADER_SIZE, true, i);
-					return header->body.normal_size.fragments_start + (fragment_size * i);
+	//Init first bloc_header
+	bloc_header.allocated = 0;
+	bloc_header.head = memory;
+	// ft_memcpy(memory + HEADER_SIZE, &bloc_header, sizeof(struct s_bloc_header));
+	test.a = header;
+	test.b = bloc_header;
+	ft_memcpy(memory, &test, sizeof(struct test));
+
+	return memory;
+}
+
+static char *malloc_op(const char *memory, const int bloc_size) {
+	struct s_main_header	*header = (struct s_main_header *)memory;
+	struct s_bloc_header	*bloc_header = (struct s_bloc_header *)((char *)memory + HEADER_SIZE);
+	struct s_bloc_header	new_bloc_header;
+	char					*ptr_allocated_bloc = NULL;
+
+	while (true) {
+		for (int i = 0; i < NB_TINY_BLOCS; i++) {	//find free bloc
+			if (bloc_header->allocated == 0) {			// Bloc allocation
+				ptr_allocated_bloc = ((char*)bloc_header + HEADER_SIZE);
+				bloc_header->allocated = 1;
+				// create a new header_bloc
+				if (i != NB_TINY_BLOCS - 1) {
+					new_bloc_header.allocated = 0;
+					new_bloc_header.head = (char *)header;
+					ft_memcpy(ptr_allocated_bloc + bloc_size, &new_bloc_header, sizeof(struct s_bloc_header));
 				}
+				return ptr_allocated_bloc;
 			}
+			bloc_header = (struct s_bloc_header *)((char *)bloc_header + HEADER_SIZE + bloc_size);		// Incrementation of ptr to the next header_bloc
 		}
-		if (next_memory_page == NULL) {
-			if (fragment_size == TINY) {
-				header->body.normal_size.next_page = init_tiny_map();
-			}
-			else {
-				header->body.normal_size.next_page = init_small_map();
-			}
-			if (header->body.normal_size.next_page == NULL) {
+		if (header->next != NULL) {						// if another memory area are availaible
+			header = (struct s_main_header *)header->next;
+			bloc_header = (struct s_bloc_header *)((char *)header + HEADER_SIZE);
+		}
+		else {											// else create and allocate a new memory area
+			char *tmp = init_map();
+			if (tmp == NULL) {
 				return NULL;
 			}
+			header->next = tmp;
+			header = (struct s_main_header *)tmp;
+			bloc_header = (struct s_bloc_header *)((char *)header + HEADER_SIZE);
 		}
-		memory_page = header->body.normal_size.next_page;
-		header = (struct s_header *)memory_page;
-		next_memory_page = header->body.normal_size.next_page;
+	}
+}
+
+
+static char *tiny_malloc(enum e_operation op) {
+	static char	*memory = NULL;
+
+	if (memory == NULL) {
+		memory = init_map();
+		if (!memory)
+			return NULL;
+	}
+	if (op == MALLOC) {
+		char *malloc_ptr = malloc_op(memory, TINY);
+		return malloc_ptr;
+	}
+	if (op == FREE) {
+		
 	}
 	return NULL;
 }
-
 
 
 void	*malloc(size_t size) {
@@ -44,12 +89,6 @@ void	*malloc(size_t size) {
 
 	if (size <= TINY) {
 		return tiny_malloc(op);
-	}
-	else if (size <= SMALL) {
-		return small_malloc(op);
-	}
-	else {
-		return large_malloc(op, size);
 	}
 	return NULL;
 }
