@@ -2,16 +2,24 @@
 #include <sys/resource.h>
 
 int main() {
-    size_t nb_page_fault = print_page_faults();  // ← Page faults AVANT tes malloc
-    int i;
     char    *addr;
-    i = 0;
 
-    while (i < 1)
-    {
+    // Premier bloc
+    for (int i = 0; i < 10; i++) {
         addr = (char *)malloc(580);
-        addr[0] = 42;
-        i++;
+        if (addr != NULL) addr[0] = 42;
+    }
+
+    // Deuxième bloc
+    for (int i = 0; i < 10; i++) {
+        addr = (char *)malloc(48102162);
+        if (addr != NULL) addr[0] = 42;
+    }
+
+    // Troisième bloc
+    for (int i = 0; i < 10; i++) {
+        addr = (char *)malloc(50);
+        if (addr != NULL) addr[0] = 42;
     }
     show_alloc_mem();
     return 0;
