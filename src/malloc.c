@@ -6,25 +6,26 @@ static char *init_map(const size_t bloc_size) {
 	struct s_main_header	header;
 	struct s_bloc_header	bloc_header;
 
+
 	// define size of mmap
-	switch (bloc_size) {
-		case TINY:
-			page_size = sysconf(_SC_PAGESIZE) * NB_TINY_PAGE;
-			break;
-		case SMALL:
-			page_size = sysconf(_SC_PAGESIZE) * NB_SMALL_PAGE;
-			break;
-		default:
-			return NULL;
+	if (bloc_size <= TINY) {
+		page_size = sysconf(_SC_PAGESIZE) * NB_TINY_PAGE;
+		header.size = TINY;
+	}
+	else if (bloc_size <= SMALL) {
+		header.size = SMALL;
+		page_size = sysconf(_SC_PAGESIZE) * NB_SMALL_PAGE;
+	}
+	else {
+		header.size = bloc_size;
+		page_size = bloc_size;
 	}
 
 	memory = mmap(NULL, page_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 	if (!memory) {
 		return NULL;
 	}
-
 	// Init main header
-	header.size = bloc_size;
 	header.next = NULL;
 	ft_memcpy(memory, &header, sizeof(struct s_main_header));
 
@@ -32,48 +33,82 @@ static char *init_map(const size_t bloc_size) {
 	bloc_header.allocated = 0;
 	bloc_header.head = memory;
 	ft_memcpy(memory + HEADER_SIZE, &bloc_header, sizeof(struct s_bloc_header));
+
+
+
+
+
+		// DEBUG ICI
+	ft_printf("=== Dans init_map AVANT return ===\n");
+	ft_printf("memory = %p\n", memory);
+	struct s_bloc_header *check = (struct s_bloc_header *)(memory + HEADER_SIZE);
+	ft_printf("check address = %p\n", check);
+	ft_printf("check->allocated = %zu\n", check->allocated);
+	ft_printf("check->head = %p\n", check->head);
+
+	// Dump raw bytes
+	ft_printf("Raw bytes at bloc_header:\n");
+	unsigned char *bytes = (unsigned char *)(memory + HEADER_SIZE);
+	for (int i = 0; i < 16; i++) {
+		ft_printf("%02x ", bytes[i]);
+	}
+	ft_printf("\n");
+
 	return memory;
 }
 
-static char *malloc_op(const char *memory, const size_t bloc_size) {
+static char *malloc_op(const char *memory, const size_t size) {
 	struct s_main_header	*header = (struct s_main_header *)memory;
 	struct s_bloc_header	*bloc_header = (struct s_bloc_header *)((char *)memory + HEADER_SIZE);
 	struct s_bloc_header	new_bloc_header;
 	int						nb_of_blocs;
 	char					*ptr_allocated_bloc = NULL;
 
-	switch (bloc_size) {
-		case TINY:
-			nb_of_blocs = NB_TINY_BLOCS;
-			break;
-		case SMALL:
-			nb_of_blocs = NB_SMALL_BLOCS;
-			break;
-		default:
-			nb_of_blocs = 1;
+	if (size <= TINY) {
+		nb_of_blocs = NB_TINY_BLOCS;
 	}
+	else if (size <= SMALL) {
+		nb_of_blocs = NB_SMALL_BLOCS;
+	}
+	else {
+		nb_of_blocs = 1;
+	}
+	ft_printf("=== Dans malloc_op DÉBUT ===\n");
+	ft_printf("bloc_header->allocated = %zu\n", bloc_header->allocated);
+	ft_printf("bloc_header->head = %p\n", bloc_header->head);
 
+	// Dump raw bytes
+	ft_printf("Raw bytes at bloc_header:\n");
+	unsigned char *bytes = (unsigned char *)bloc_header;
+	for (int i = 0; i < 16; i++) {
+		ft_printf("%02x ", bytes[i]);
+	}
+	ft_printf("\n");
 	while (true) {
 		for (int i = 0; i < nb_of_blocs; i++) {	//find free bloc
 			if (bloc_header->allocated == 0) {			// Bloc allocation
 				ptr_allocated_bloc = ((char*)bloc_header + HEADER_SIZE);
-				bloc_header->allocated = 1;
+				bloc_header->allocated = size;
 				// create a new header_bloc
 				if (i != nb_of_blocs - 1) {
-					new_bloc_header.allocated = 0;
-					new_bloc_header.head = (char *)header;
-					ft_memcpy(ptr_allocated_bloc + bloc_size, &new_bloc_header, sizeof(struct s_bloc_header));
+					struct s_bloc_header *next_bloc = (struct s_bloc_header *)((char *)bloc_header + HEADER_SIZE + header->size);
+					// Vérifier si le prochain bloc n'est pas déjà initialisé
+					if (next_bloc->head != (char *)header) {
+						new_bloc_header.allocated = 0;
+						new_bloc_header.head = (char *)header;
+						ft_memcpy(next_bloc, &new_bloc_header, sizeof(struct s_bloc_header));
+					}
 				}
 				return ptr_allocated_bloc;
 			}
-			bloc_header = (struct s_bloc_header *)((char *)bloc_header + HEADER_SIZE + bloc_size);		// Incrementation of ptr to the next header_bloc
+			bloc_header = (struct s_bloc_header *)((char *)bloc_header + HEADER_SIZE + header->size);
 		}
 		if (header->next != NULL) {						// if another memory area are availaible
 			header = (struct s_main_header *)header->next;
 			bloc_header = (struct s_bloc_header *)((char *)header + HEADER_SIZE);
 		}
 		else {											// else create and allocate a new memory area
-			char *tmp = init_map(bloc_size);
+			char *tmp = init_map(size);
 			if (tmp == NULL) {
 				return NULL;
 			}
@@ -86,29 +121,44 @@ static char *malloc_op(const char *memory, const size_t bloc_size) {
 
 static void show_mem(const char* memory, const size_t bloc_size) {
 	size_t					nb_of_blocs;
-	struct s_bloc_header	*bloc_header = (struct s_bloc_header *)((char *)memory + HEADER_SIZE); // First bloc_header
+	struct s_main_header	*main_header = (struct s_main_header *)memory;
+	struct s_bloc_header	*bloc_header;
+	size_t					count = 0;
 
 	switch (bloc_size) {
 		case TINY:
+			ft_printf("TINY : \n");
 			nb_of_blocs = NB_TINY_BLOCS;
 			break;
 		case SMALL:
+			ft_printf("SMALL : \n");
 			nb_of_blocs = NB_SMALL_BLOCS;
 			break;
 		default:
+			ft_printf("LARGE : \n");
 			nb_of_blocs = 1;
+			break;
 	}
-	for (size_t i = 0; i < nb_of_blocs; i++)
-	{
-		if (bloc_header->allocated != 0) {
-			ft_printf("%p \n", &bloc_header);
+
+	while (main_header) {
+		bloc_header = (struct s_bloc_header *)((char *)main_header + HEADER_SIZE); // First bloc_header
+		for (size_t i = 0; i < nb_of_blocs; i++)
+		{
+			if (bloc_header->allocated != 0) {
+				void *start = (char *)bloc_header + HEADER_SIZE;
+				void *end = (char *)start + bloc_header->allocated;
+				ft_printf("%p - %p : %z \n", start, end, bloc_header->allocated);
+				count++;
+			}
+			bloc_header = (struct s_bloc_header *)((char *)bloc_header + HEADER_SIZE + bloc_size);
 		}
+		main_header = (struct s_main_header *)main_header->next;
 	}
-	
+	ft_printf("number of bloc : %z\n", count);
 }
 
 
-static char *tiny_malloc(enum e_operation op) {
+static char *tiny_malloc(enum e_operation op, size_t size) {
 	static char	*memory = NULL;
 
 	if (memory == NULL) {
@@ -118,7 +168,7 @@ static char *tiny_malloc(enum e_operation op) {
 	}
 	switch (op) {
 		case MALLOC:
-			return malloc_op(memory, TINY);
+			return malloc_op(memory, size);
 		case FREE:
 			break;
 		case SHOW_MEMORY:
@@ -130,7 +180,7 @@ static char *tiny_malloc(enum e_operation op) {
 	return NULL;
 }
 
-static char *small_malloc(enum e_operation op) {
+static char *small_malloc(enum e_operation op, size_t size) {
 	static char	*memory = NULL;
 
 	if (memory == NULL) {
@@ -140,7 +190,7 @@ static char *small_malloc(enum e_operation op) {
 	}
 	switch (op) {
 		case MALLOC:
-			return malloc_op(memory, SMALL);
+			return malloc_op(memory, size);
 		case FREE:
 			break;
 		case SHOW_MEMORY:
@@ -178,10 +228,10 @@ void	*malloc(size_t size) {
 	enum e_operation	op = MALLOC;
 
 	if (size <= TINY) {
-		return tiny_malloc(op);
+		return tiny_malloc(op, size);
 	}
 	if (size <= SMALL) {
-		return small_malloc(op);
+		return small_malloc(op, size);
 	}
 	else {
 		return large_malloc(op, size);
@@ -190,8 +240,8 @@ void	*malloc(size_t size) {
 }
 
 void 	show_alloc_mem() {
-	tiny_malloc(SHOW_MEMORY);
-	small_malloc(SHOW_MEMORY);
+	tiny_malloc(SHOW_MEMORY, TINY);
+	small_malloc(SHOW_MEMORY, SMALL);
 }
 
 
