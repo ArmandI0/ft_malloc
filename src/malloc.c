@@ -117,14 +117,14 @@ static void show_mem(const char* memory) {
 			if (bloc_header->allocated != 0) {
 				void *start = (char *)bloc_header + HEADER_SIZE;
 				void *end = (char *)start + bloc_header->allocated;
-				ft_printf("%p - %p : %z \n", start, end, bloc_header->allocated);
+				ft_printf("%p - %p : %zu \n", start, end, bloc_header->allocated);
 				count++;
 			}
 			bloc_header = (struct s_bloc_header *)((char *)bloc_header + HEADER_SIZE + main_header->size);
 		}
 		main_header = (struct s_main_header *)main_header->next;
 	}
-	ft_printf("number of bloc : %z\n", count);
+	ft_printf("number of bloc : %zu\n", count);
 }
 
 

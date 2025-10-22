@@ -34,15 +34,18 @@ enum e_operation {
 struct s_main_header {	// 16 bytes
 	size_t	size;
 	char	*next;
-};
+}__attribute__((aligned(16)));
 
 struct s_bloc_header {	// 16 bytes
 	size_t	allocated;
 	char	*head;
-};
+}__attribute__((aligned(16)));
 
 void	free(void *ptr);
 void	*malloc(size_t size);
 void	*realloc(void *ptr, size_t size);	
 void 	show_alloc_mem();
+int		ft_print_size_t(size_t n);
+
+
 #endif

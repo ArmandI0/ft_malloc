@@ -3,6 +3,7 @@
 
 int main() {
     char    *addr;
+	size_t 	a = 580;
 
     // Premier bloc
     for (int i = 0; i < 10; i++) {
