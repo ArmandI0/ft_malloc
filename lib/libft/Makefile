@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: aranger <aranger@student.42.fr>            +#+  +:+       +#+         #
+#    By: armandanger <armandanger@student.42.fr>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/10/07 11:13:31 by aranger           #+#    #+#              #
-#    Updated: 2023/12/04 11:44:53 by aranger          ###   ########.fr        #
+#    Updated: 2025/10/26 22:22:31 by armandanger      ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,7 +21,6 @@ SRCS		= \
 			ft_isspace.c \
 			ft_isdigit.c \
 			ft_bzero.c \
-			ft_calloc.c \
 			ft_memset.c \
 			ft_memcpy.c \
 			ft_memmove.c \
@@ -32,30 +31,21 @@ SRCS		= \
 			ft_tolower.c \
 			ft_strlcpy.c \
 			ft_strlcat.c \
-			ft_strdup.c \
-			ft_substr.c \
 			ft_strlen.c \
 			ft_strrchr.c \
 			ft_strchr.c \
 			ft_strncmp.c \
-			ft_strtrim.c \
-			ft_strjoin.c \
 			ft_strnstr.c \
-			ft_split.c \
-			ft_itoa.c \
 			ft_count_word.c \
 			ft_putchar_fd.c \
 			ft_putstr_fd.c \
 			ft_putendl_fd.c \
 			ft_putnbr_fd.c \
-			ft_strmapi.c \
 			ft_striteri.c \
 			ft_printf/ft_print_adress.c \
 			ft_printf/ft_print_others.c \
 			ft_printf/ft_print_unsigned.c \
 			ft_printf/ft_printf.c \
-			get_next_line/get_next_line_utils.c \
-			get_next_line/get_next_line.c \
 
 SRC			= $(addprefix src/, $(SRCS))
 

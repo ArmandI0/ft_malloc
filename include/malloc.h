@@ -1,12 +1,9 @@
 #ifndef malloc_h
 #define malloc_h
 
-#include <stdlib.h>
 #include <stdbool.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include <stdint.h>
-#include <stdio.h> // TODO  : a supprimer
 #include <stdint.h>
 #include "../lib/libft/src/libft.h"
 
@@ -41,11 +38,23 @@ struct s_bloc_header {	// 16 bytes
 	char	*head;
 }__attribute__((aligned(16)));
 
+struct s_memory_operation {
+	enum e_operation	type;
+	union {
+		size_t					size;
+		struct s_bloc_header	*ptr;
+	};
+};
+
 void	free(void *ptr);
 void	*malloc(size_t size);
 void	*realloc(void *ptr, size_t size);	
 void 	show_alloc_mem();
 int		ft_print_size_t(size_t n);
+char 	*tiny_malloc(struct s_memory_operation *op);
+char 	*small_malloc(struct s_memory_operation *op);
+char 	*large_malloc(struct s_memory_operation *op);
+
 
 
 #endif

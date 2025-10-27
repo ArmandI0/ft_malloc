@@ -3,25 +3,18 @@
 
 int main() {
     char    *addr;
-	size_t 	a = 580;
 
     // Premier bloc
     for (int i = 0; i < 10; i++) {
-        addr = (char *)malloc(580);
+        addr = (char *)malloc(73);
         if (addr != NULL) addr[0] = 42;
+		free(addr);
+
     }
 
-    // Deuxième bloc
-    for (int i = 0; i < 10; i++) {
-        addr = (char *)malloc(48102162);
-        if (addr != NULL) addr[0] = 42;
-    }
-
-    // Troisième bloc
-    for (int i = 0; i < 10; i++) {
-        addr = (char *)malloc(50);
-        if (addr != NULL) addr[0] = 42;
-    }
+	int a = 0;
+	free(1);
     show_alloc_mem();
-    return 0;
+	show_alloc_mem();
+	return 0;
 }

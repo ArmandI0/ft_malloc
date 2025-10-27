@@ -11,6 +11,7 @@ LIBFT_A			= $(LIBFT)/libft.a
 SRCS			= \
 				main.c \
 				malloc.c \
+				free.c \
 				
 SRC				= $(addprefix src/, $(SRCS))
 OBJS			= $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)

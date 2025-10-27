@@ -95,21 +95,37 @@
 //     }
 // }
 
+void free_op(char *memory, struct s_bloc_header *ptr) {
+	struct s_main_header	*main_header = (struct s_main_header *)memory;
 
-// void free(void *ptr) {
-//     uintptr_t addr = (uintptr_t)ptr;
+	while (main_header != NULL) {
+		if ((char *)main_header == ptr->head) {
+			ptr->allocated = 0;
+			return;
+		}
+		main_header = (struct s_main_header *)main_header->next;
+	}
+}
 
-//     uintptr_t page_start = addr & ~(0x1000 - 1);
+void free(void *ptr) {
+	struct s_bloc_header 		*bloc_header;
+	struct s_memory_operation	op;
 
+    if (!ptr) {
+        return;
+	}
 
-//     enum e_operation	op = FREE;
-
-
-//     struct s_header *header = (struct s_header *)page_start;
-//     if (header->size == TINY) {
-//         tiny_malloc(op);
-//     }
-//     print_sheader(header, 0);
-
-//     printf("%p", ptr);
-// }
+	op.type = FREE;
+    bloc_header = (struct s_bloc_header *)((char *)ptr - HEADER_SIZE);
+	op.ptr = bloc_header;
+	
+	if (bloc_header->allocated <= TINY) {
+		tiny_malloc(&op);
+	}
+	else if (bloc_header->allocated <= SMALL) {
+		small_malloc(&op);
+	}
+	else {
+		large_malloc(&op);
+	}
+}

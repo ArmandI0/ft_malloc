@@ -18,7 +18,7 @@ static char *init_map(const size_t bloc_size) {
 	}
 	else {
 		header.size = bloc_size;
-		page_size = bloc_size;
+		page_size = bloc_size + HEADER_SIZE + HEADER_SIZE; // space for main_header + bloc_header
 	}
 
 	memory = mmap(NULL, page_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -117,18 +117,18 @@ static void show_mem(const char* memory) {
 			if (bloc_header->allocated != 0) {
 				void *start = (char *)bloc_header + HEADER_SIZE;
 				void *end = (char *)start + bloc_header->allocated;
-				ft_printf("%p - %p : %zu \n", start, end, bloc_header->allocated);
+				ft_printf("%p - %p : %z \n", start, end, bloc_header->allocated);
 				count++;
 			}
 			bloc_header = (struct s_bloc_header *)((char *)bloc_header + HEADER_SIZE + main_header->size);
 		}
 		main_header = (struct s_main_header *)main_header->next;
 	}
-	ft_printf("number of bloc : %zu\n", count);
+	ft_printf("number of bloc : %z\n", count);
 }
 
 
-static char *tiny_malloc(enum e_operation op, size_t size) {
+char *tiny_malloc(struct s_memory_operation *op) {
 	static char	*memory = NULL;
 
 	if (memory == NULL) {
@@ -136,10 +136,11 @@ static char *tiny_malloc(enum e_operation op, size_t size) {
 		if (!memory)
 			return NULL;
 	}
-	switch (op) {
+	switch (op->type) {
 		case MALLOC:
-			return malloc_op(memory, size);
+			return malloc_op(memory, op->size);
 		case FREE:
+			op->ptr->allocated = 0;
 			break;
 		case SHOW_MEMORY:
 			show_mem(memory);
@@ -150,7 +151,7 @@ static char *tiny_malloc(enum e_operation op, size_t size) {
 	return NULL;
 }
 
-static char *small_malloc(enum e_operation op, size_t size) {
+char *small_malloc(struct s_memory_operation *op) {
 	static char	*memory = NULL;
 
 	if (memory == NULL) {
@@ -158,10 +159,11 @@ static char *small_malloc(enum e_operation op, size_t size) {
 		if (!memory)
 			return NULL;
 	}
-	switch (op) {
+	switch (op->type) {
 		case MALLOC:
-			return malloc_op(memory, size);
+			return malloc_op(memory, op->size);
 		case FREE:
+			op->ptr->allocated = 0;
 			break;
 		case SHOW_MEMORY:
 			show_mem(memory);
@@ -172,19 +174,20 @@ static char *small_malloc(enum e_operation op, size_t size) {
 	return NULL;
 }
 
-static char *large_malloc(enum e_operation op, size_t size) {
+char *large_malloc(struct s_memory_operation *op) {
 	static char	*memory = NULL;
 
 	if (memory == NULL) {
-		memory = init_map(size);
+		memory = init_map(op->size);
 		if (!memory)
 			return NULL;
 	}
 
-	switch (op) {
+	switch (op->type) {
 		case MALLOC:
-			return malloc_op(memory, size);
+			return malloc_op(memory, op->size);
 		case FREE:
+			op->ptr->allocated = 0;
 			break;
 		case SHOW_MEMORY:
 			show_mem(memory);
@@ -196,24 +199,34 @@ static char *large_malloc(enum e_operation op, size_t size) {
 }
 
 void	*malloc(size_t size) {
-	enum e_operation	op = MALLOC;
+	struct s_memory_operation	op;
+
+	op.type = MALLOC;
+	op.size = size;
 
 	if (size <= TINY) {
-		return tiny_malloc(op, size);
+		return tiny_malloc(&op);
 	}
 	if (size <= SMALL) {
-		return small_malloc(op, size);
+		return small_malloc(&op);
 	}
 	else {
-		return large_malloc(op, size);
+		return large_malloc(&op);
 	}
 	return NULL;
 }
 
 void 	show_alloc_mem() {
-	tiny_malloc(SHOW_MEMORY, TINY);
-	small_malloc(SHOW_MEMORY, SMALL);
-	large_malloc(SHOW_MEMORY, 0);
+	struct s_memory_operation	op;
+
+	op.type = SHOW_MEMORY;
+
+	op.size = TINY;
+	tiny_malloc(&op);
+	op.size = SMALL;
+	small_malloc(&op);
+	op.size = 0;
+	large_malloc(&op);
 }
 
 
