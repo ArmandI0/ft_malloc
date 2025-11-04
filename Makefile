@@ -12,6 +12,9 @@ SRCS			= \
 				main.c \
 				malloc.c \
 				free.c \
+				realloc.c \
+				memory_management.c \
+				show_mem.c \
 				
 SRC				= $(addprefix src/, $(SRCS))
 OBJS			= $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)

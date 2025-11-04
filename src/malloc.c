@@ -1,6 +1,6 @@
 #include "../include/malloc.h"
 
-static char *init_map(const size_t bloc_size) {
+char *init_map(const size_t bloc_size) {
 	char					*memory = NULL;
 	int						page_size;
 	struct s_main_header	header;
@@ -37,7 +37,7 @@ static char *init_map(const size_t bloc_size) {
 	return memory;
 }
 
-static char *malloc_op(const char *memory, const size_t size) {
+char *malloc_op(const char *memory, const size_t size) {
 	struct s_main_header	*header = (struct s_main_header *)memory;
 	struct s_bloc_header	*bloc_header = (struct s_bloc_header *)((char *)memory + HEADER_SIZE);
 	struct s_bloc_header	new_bloc_header;
@@ -62,7 +62,7 @@ static char *malloc_op(const char *memory, const size_t size) {
 				// create a new header_bloc
 				if (i != nb_of_blocs - 1) {
 					struct s_bloc_header *next_bloc = (struct s_bloc_header *)((char *)bloc_header + HEADER_SIZE + header->size);
-					// Vérifier si le prochain bloc n'est pas déjà initialisé
+					// If next bloc are availaible
 					if (next_bloc->head != (char *)header) {
 						new_bloc_header.allocated = 0;
 						new_bloc_header.head = (char *)header;
@@ -73,11 +73,11 @@ static char *malloc_op(const char *memory, const size_t size) {
 			}
 			bloc_header = (struct s_bloc_header *)((char *)bloc_header + HEADER_SIZE + header->size);
 		}
-		if (header->next != NULL) {						// if another memory area are availaible
+		if (header->next != NULL) {
 			header = (struct s_main_header *)header->next;
 			bloc_header = (struct s_bloc_header *)((char *)header + HEADER_SIZE);
 		}
-		else {											// else create and allocate a new memory area
+		else {
 			char *tmp = init_map(size);
 			if (tmp == NULL) {
 				return NULL;
@@ -89,125 +89,17 @@ static char *malloc_op(const char *memory, const size_t size) {
 	}
 }
 
-static void show_mem(const char* memory) {
-	size_t					nb_of_blocs;
-	struct s_main_header	*main_header = (struct s_main_header *)memory;
-	struct s_bloc_header	*bloc_header;
-	size_t					count = 0;
-
-	switch (main_header->size) {
-		case TINY:
-			ft_printf("TINY : \n");
-			nb_of_blocs = NB_TINY_BLOCS;
-			break;
-		case SMALL:
-			ft_printf("SMALL : \n");
-			nb_of_blocs = NB_SMALL_BLOCS;
-			break;
-		default:
-			ft_printf("LARGE : \n");
-			nb_of_blocs = 1;
-			break;
-	}
-
-	while (main_header) {
-		bloc_header = (struct s_bloc_header *)((char *)main_header + HEADER_SIZE); // First bloc_header
-		for (size_t i = 0; i < nb_of_blocs; i++)
-		{
-			if (bloc_header->allocated != 0) {
-				void *start = (char *)bloc_header + HEADER_SIZE;
-				void *end = (char *)start + bloc_header->allocated;
-				ft_printf("%p - %p : %z \n", start, end, bloc_header->allocated);
-				count++;
-			}
-			bloc_header = (struct s_bloc_header *)((char *)bloc_header + HEADER_SIZE + main_header->size);
-		}
-		main_header = (struct s_main_header *)main_header->next;
-	}
-	ft_printf("number of bloc : %z\n", count);
-}
-
-
-char *tiny_malloc(struct s_memory_operation *op) {
-	static char	*memory = NULL;
-
-	if (memory == NULL) {
-		memory = init_map(TINY);
-		if (!memory)
-			return NULL;
-	}
-	switch (op->type) {
-		case MALLOC:
-			return malloc_op(memory, op->size);
-		case FREE:
-			op->ptr->allocated = 0;
-			break;
-		case SHOW_MEMORY:
-			show_mem(memory);
-			break;
-		default:
-			return NULL;
-	}
-	return NULL;
-}
-
-char *small_malloc(struct s_memory_operation *op) {
-	static char	*memory = NULL;
-
-	if (memory == NULL) {
-		memory = init_map(SMALL);
-		if (!memory)
-			return NULL;
-	}
-	switch (op->type) {
-		case MALLOC:
-			return malloc_op(memory, op->size);
-		case FREE:
-			op->ptr->allocated = 0;
-			break;
-		case SHOW_MEMORY:
-			show_mem(memory);
-			break;
-		default:
-			return NULL;
-	}
-	return NULL;
-}
-
-char *large_malloc(struct s_memory_operation *op) {
-	static char	*memory = NULL;
-
-	if (memory == NULL) {
-		memory = init_map(op->size);
-		if (!memory)
-			return NULL;
-	}
-
-	switch (op->type) {
-		case MALLOC:
-			return malloc_op(memory, op->size);
-		case FREE:
-			op->ptr->allocated = 0;
-			break;
-		case SHOW_MEMORY:
-			show_mem(memory);
-			break;
-		default:
-			return NULL;
-	}
-	return NULL;
-}
 
 void	*malloc(size_t size) {
 	struct s_memory_operation	op;
 
 	op.type = MALLOC;
-	op.size = size;
+	op.malloc.size = size;
 
 	if (size <= TINY) {
 		return tiny_malloc(&op);
 	}
-	if (size <= SMALL) {
+	else if (size <= SMALL) {
 		return small_malloc(&op);
 	}
 	else {
@@ -216,17 +108,6 @@ void	*malloc(size_t size) {
 	return NULL;
 }
 
-void 	show_alloc_mem() {
-	struct s_memory_operation	op;
 
-	op.type = SHOW_MEMORY;
-
-	op.size = TINY;
-	tiny_malloc(&op);
-	op.size = SMALL;
-	small_malloc(&op);
-	op.size = 0;
-	large_malloc(&op);
-}
 
 
