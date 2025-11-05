@@ -1,5 +1,9 @@
 #include "../include/malloc.h"
 
+static void print_byte_as_hex(unsigned char byte_value);
+static void print_hex_offset(size_t offset);
+
+
 void show_alloc_mem() {
 	struct s_memory_operation	op;
 
@@ -10,10 +14,15 @@ void show_alloc_mem() {
 	large_malloc(&op);
 }
 
-// void show_alloc_mem_ex() {
-// 	struct s_memory_operation	op;
+void show_alloc_mem_ex() {
+	struct s_memory_operation	op;
 
-// }
+	op.type = SHOW_MEMORY_HEX;
+
+	tiny_malloc(&op);
+	small_malloc(&op);
+	large_malloc(&op);
+}
 
 void show_mem_op(const char* memory) {
 	size_t					nb_of_blocs;
@@ -51,4 +60,74 @@ void show_mem_op(const char* memory) {
 		main_header = (struct s_main_header *)main_header->next;
 	}
 	ft_printf("number of bloc : %z\n", count);
+}
+
+
+void print_hexdump(const void *data, size_t size) {
+    const unsigned char *p = (const unsigned char *)data;
+    size_t i, j;
+
+    if (data == NULL || size == 0) {
+        ft_printf("Zone memoire vide ou taille nulle.\n");
+        return;
+    }
+
+    ft_printf("--- Hex Dump de %z octets (Addr: %p) ---\n", size, data);
+    ft_printf("Offset | 00 01 02 03 04 05 06 07 | 08 09 0A 0B 0C 0D 0E 0F | ASCII\n");
+    ft_printf("-------+-------------------------+-------------------------+------------------\n");
+
+    for (i = 0; i < size; i += 16) {
+			print_hex_offset(i);        
+		for (j = 0; j < 16; j++) {
+            if (i + j < size) {
+				print_byte_as_hex(p[i + j]);            
+			} else {
+                ft_printf("   ");
+            }
+            if (j == 7) {
+                ft_printf("| ");
+            }
+        }
+        ft_printf("| ");
+        for (j = 0; j < 16; j++) {
+            if (i + j < size) {
+                if (ft_isprint(p[i + j])) {
+                    ft_printf("%c", p[i + j]);
+                } else {
+                    ft_printf(".");
+                }
+            } else {
+                break;
+            }
+        }
+        ft_printf("\n");
+    }
+
+    ft_printf("--------------------------------------------------------------------------------\n");
+}
+
+static void print_byte_as_hex(unsigned char byte_value) {
+    const char 		hex_chars[] = "0123456789ABCDEF";
+    unsigned char	high_nibble = (byte_value >> 4);
+    unsigned char	low_nibble = (byte_value & 0x0F);
+
+    ft_printf("%c", hex_chars[high_nibble]);
+    ft_printf("%c", hex_chars[low_nibble]);
+	ft_printf(" ");
+}
+
+
+static void print_hex_offset(size_t offset) {
+    const char	hex_chars[] = "0123456789ABCDEF";
+    char 		hex_representation[6]; 
+    int			i;
+    
+    for (i = 5; i >= 0; i--) {
+        hex_representation[i] = hex_chars[offset & 0x0F]; 
+        offset >>= 4; 
+    }
+    for (i = 0; i < 6; i++) {
+        ft_printf("%c", hex_representation[i]);
+    }
+    ft_printf(" | ");
 }

@@ -70,10 +70,13 @@ static char *do_operation(char *memory, struct s_memory_operation *op) {
 			free_op(memory, op->free.ptr);
 			break;
 		case SHOW_MEMORY:
-			show_alloc_mem(memory);
+			show_mem_op(memory);
 			break;
 		case REALLOC:
 			ptr = realloc_op(memory, op->realloc.ptr, op->realloc.size);
+			break;
+		case SHOW_MEMORY_HEX:
+			print_hexdump(memory, TINY);
 			break;
 		default:
 			ptr = NULL;
