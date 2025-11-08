@@ -76,7 +76,7 @@ static char *do_operation(char *memory, struct s_memory_operation *op) {
 			ptr = realloc_op(memory, op->realloc.ptr, op->realloc.size);
 			break;
 		case SHOW_MEMORY_HEX:
-			print_hexdump(memory, TINY);
+			show_mem_hex_op(memory);
 			break;
 		default:
 			ptr = NULL;

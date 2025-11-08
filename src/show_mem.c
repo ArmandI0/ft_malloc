@@ -62,6 +62,49 @@ void show_mem_op(const char* memory) {
 	ft_printf("number of bloc : %z\n", count);
 }
 
+void show_mem_hex_op(const char* memory) {
+	size_t					nb_of_blocs;
+	struct s_main_header	*main_header = (struct s_main_header *)memory;
+	struct s_bloc_header	*bloc_header;
+	size_t					count = 0;
+
+	switch (main_header->size) {
+		case TINY:
+			ft_printf("=== TINY ZONE HEX DUMP ===\n");
+			nb_of_blocs = NB_TINY_BLOCS;
+			break;
+		case SMALL:
+			ft_printf("=== SMALL ZONE HEX DUMP ===\n");
+			nb_of_blocs = NB_SMALL_BLOCS;
+			break;
+		default:
+			ft_printf("=== LARGE ZONE HEX DUMP ===\n");
+			nb_of_blocs = 1;
+			break;
+	}
+
+	while (main_header) {
+		bloc_header = (struct s_bloc_header *)((char *)main_header + HEADER_SIZE);
+		for (size_t i = 0; i < nb_of_blocs; i++)
+		{
+			if (bloc_header->allocated != 0) {
+				void *start = (char *)bloc_header + HEADER_SIZE;
+				ft_printf("\n--- Bloc %zu (Taille: %zu bytes, Addr: %p) ---\n", 
+						 count, bloc_header->allocated, start);
+				print_hexdump(start, bloc_header->allocated);
+				count++;
+			}
+			bloc_header = (struct s_bloc_header *)((char *)bloc_header + HEADER_SIZE + main_header->size);
+		}
+		main_header = (struct s_main_header *)main_header->next;
+	}
+	
+	if (count == 0) {
+		ft_printf("Aucun bloc alloué dans cette zone.\n");
+	} else {
+		ft_printf("\nTotal: %zu bloc(s) avec contenu hexdump affiché.\n", count);
+	}
+}
 
 void print_hexdump(const void *data, size_t size) {
     const unsigned char *p = (const unsigned char *)data;

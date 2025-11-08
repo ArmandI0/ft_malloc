@@ -1,14 +1,173 @@
 #include "../include/malloc.h"
-#include <string.h> // Pour ft_memcpy, ft_memcmp, ft_strncmp (qui sont dans libft)
+#include <string.h>
+#include <stdio.h>
 
+/**
+ * @brief Remplit une zone mémoire avec un motif spécifique
+ */
+void fill_memory_pattern(void *ptr, size_t size, const char *pattern) {
+    if (!ptr || !pattern) return;
+    
+    size_t pattern_len = strlen(pattern);
+    char *mem = (char *)ptr;
+    
+    for (size_t i = 0; i < size; i++) {
+        mem[i] = pattern[i % pattern_len];
+    }
+}
 
+/**
+ * @brief Remplit une zone avec des valeurs hexadécimales croissantes
+ */
+void fill_hex_sequence(void *ptr, size_t size) {
+    if (!ptr) return;
+    
+    unsigned char *mem = (unsigned char *)ptr;
+    for (size_t i = 0; i < size; i++) {
+        mem[i] = (unsigned char)(i & 0xFF);
+    }
+}
+
+/**
+ * @brief Test complet de show_alloc_mem_ex avec différents motifs
+ */
 int main() {
-	char *toto = malloc(100);
-
-	for (int i = 0; i < 100; i++) {
-		toto[i] = i;
-	}
-	show_alloc_mem_ex();
+    void *ptrs[15];
+    
+    ft_printf("=== TEST HEXDUMP MALLOC ===\n\n");
+    
+    // ==================== TINY ALLOCATIONS ====================
+    ft_printf("--- Allocations TINY (≤ 128 bytes) ---\n");
+    
+    // 1. Message simple
+    ptrs[0] = malloc(32);
+    strcpy((char*)ptrs[0], "Hello, World! Test TINY 1");
+    
+    // 2. Pattern répétitif
+    ptrs[1] = malloc(64);
+    fill_memory_pattern(ptrs[1], 64, "ABC");
+    
+    // 3. Séquence hexadécimale
+    ptrs[2] = malloc(80);
+    fill_hex_sequence(ptrs[2], 80);
+    
+    // 4. Données structurées
+    ptrs[3] = malloc(128);
+    char *struct_data = (char*)ptrs[3];
+    strcpy(struct_data, "ID:12345|NAME:John_Doe|AGE:30|STATUS:ACTIVE");
+    
+    // ==================== SMALL ALLOCATIONS ====================
+    ft_printf("\n--- Allocations SMALL (≤ 1024 bytes) ---\n");
+    
+    // 5. Texte long
+    ptrs[4] = malloc(200);
+    strcpy((char*)ptrs[4], "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+                          "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
+                          "Ut enim ad minim veniam, quis nostrud exercitation.");
+    
+    // 6. Pattern binaire
+    ptrs[5] = malloc(300);
+    fill_memory_pattern(ptrs[5], 300, "\x42\x69\x6E\x61\x72\x79");
+    
+    // 7. Séquence ASCII étendue
+    ptrs[6] = malloc(512);
+    char *ascii_mem = (char*)ptrs[6];
+    for (int i = 0; i < 512; i++) {
+        ascii_mem[i] = 32 + (i % 95); // Caractères ASCII imprimables
+    }
+    
+    // 8. Données JSON simulées
+    ptrs[7] = malloc(400);
+    strcpy((char*)ptrs[7], "{"
+                          "\"user_id\":123456,"
+                          "\"username\":\"test_user\","
+                          "\"email\":\"test@example.com\","
+                          "\"settings\":{"
+                            "\"theme\":\"dark\","
+                            "\"language\":\"fr\","
+                            "\"notifications\":true"
+                          "},"
+                          "\"last_login\":\"2024-11-05T14:30:00Z\""
+                          "}");
+    
+    // ==================== LARGE ALLOCATIONS ====================
+    ft_printf("\n--- Allocations LARGE (> 1024 bytes) ---\n");
+    
+    // 9. Grande séquence de motifs
+    ptrs[8] = malloc(2048);
+    fill_memory_pattern(ptrs[8], 2048, "LARGE_PATTERN_");
+    
+    // 10. Buffer avec en-têtes
+    ptrs[9] = malloc(1500);
+    char *large_buf = (char*)ptrs[9];
+    strcpy(large_buf, "=== LARGE BUFFER HEADER ===\n");
+    strcat(large_buf, "This is a large allocation for testing hexdump functionality.\n");
+    strcat(large_buf, "It contains multiple lines of text and various data patterns.\n");
+    for (int i = strlen(large_buf); i < 1400; i++) {
+        large_buf[i] = 'A' + (i % 26);
+    }
+    large_buf[1499] = '\0';
+    
+    // 11. Données pseudo-cryptographiques
+    ptrs[10] = malloc(1200);
+    unsigned char *crypto_data = (unsigned char*)ptrs[10];
+    for (int i = 0; i < 1200; i++) {
+        crypto_data[i] = (unsigned char)((i * 17 + 42) % 256);
+    }
+    
+    // ==================== ALLOCATIONS MIXTES ====================
+    ft_printf("\n--- Allocations mixtes pour fragmentation ---\n");
+    
+    // 12-14. Petites allocations intercalées
+    ptrs[11] = malloc(16);
+    strcpy((char*)ptrs[11], "TINY_A");
+    
+    ptrs[12] = malloc(48);
+    fill_memory_pattern(ptrs[12], 48, "XoXo");
+    
+    ptrs[13] = malloc(96);
+    char *mixed_data = (char*)ptrs[13];
+    strcpy(mixed_data, "Mixed: ");
+    for (int i = 7; i < 95; i++) {
+        mixed_data[i] = (i % 2) ? '1' : '0';
+    }
+    mixed_data[95] = '\0';
+    
+    // 15. Dernière allocation avec métadonnées
+    ptrs[14] = malloc(256);
+    char *meta_data = (char*)ptrs[14];
+    sprintf(meta_data, "METADATA|TOTAL_ALLOCS:15|TIMESTAMP:%ld|CHECKSUM:0xDEADBEEF", 
+            (long)1699189800);
+    
+    ft_printf("\n=== AFFICHAGE HEXDUMP COMPLET ===\n");
+    
+    // Affichage normal pour comparaison
+    ft_printf("\n1. Affichage normal (show_alloc_mem):\n");
+    show_alloc_mem();
+    
+    // Affichage hexdump détaillé
+    ft_printf("\n2. Affichage HEXDUMP (show_alloc_mem_ex):\n");
+    show_alloc_mem_ex();
+    
+    ft_printf("\n=== NETTOYAGE ===\n");
+    
+    // Libération de quelques blocs pour tester l'affichage partiel
+    free(ptrs[1]);  // TINY
+    free(ptrs[5]);  // SMALL
+    free(ptrs[9]);  // LARGE
+    
+    ft_printf("\nAprès libération de 3 blocs:\n");
+    show_alloc_mem_ex();
+    
+    // Nettoyage final
+    for (int i = 0; i < 15; i++) {
+        if (i != 1 && i != 5 && i != 9) { // Déjà libérés
+            free(ptrs[i]);
+        }
+    }
+    
+    ft_printf("\n=== FIN DU TEST ===\n");
+    return 0;
 }
 
 

@@ -71,6 +71,7 @@ void	*realloc_op(char *memory, struct s_bloc_header *ptr, size_t size);
 void 	show_alloc_mem();
 void	show_alloc_mem_ex();
 void 	show_mem_op(const char* memory);
+void 	show_mem_hex_op(const char* memory);
 void 	print_hexdump(const void *data, size_t size);
 
 char 	*tiny_malloc(struct s_memory_operation *op);
