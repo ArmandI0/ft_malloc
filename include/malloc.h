@@ -27,6 +27,7 @@ enum e_operation {
 	REALLOC,
 	SHOW_MEMORY,
 	SHOW_MEMORY_HEX,
+	VERIFY_PTR,
 };
 
 struct s_main_header {	// 16 bytes
@@ -73,7 +74,7 @@ void	show_alloc_mem_ex();
 void 	show_mem_op(const char* memory);
 void 	show_mem_hex_op(const char* memory);
 void 	print_hexdump(const void *data, size_t size);
-
+char	*verify_ptr(struct s_bloc_header *ptr);
 char 	*tiny_malloc(struct s_memory_operation *op);
 char 	*small_malloc(struct s_memory_operation *op);
 char 	*large_malloc(struct s_memory_operation *op);

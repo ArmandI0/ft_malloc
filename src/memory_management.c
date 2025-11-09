@@ -1,6 +1,7 @@
 #include "../include/malloc.h"
 
 static char *do_operation(char *memory, struct s_memory_operation *op);
+static char *verify_ptr_op(char *memory, struct s_bloc_header *ptr_to_find);
 
 char *tiny_malloc(struct s_memory_operation *op) {
 	static char				*memory = NULL;
@@ -78,9 +79,30 @@ static char *do_operation(char *memory, struct s_memory_operation *op) {
 		case SHOW_MEMORY_HEX:
 			show_mem_hex_op(memory);
 			break;
+		case VERIFY_PTR:
+			ptr = verify_ptr_op(memory, op->free.ptr);
+			break;
 		default:
 			ptr = NULL;
 			break;
 	}
 	return ptr;
+}
+
+static char *verify_ptr_op(char *memory, struct s_bloc_header *ptr_to_find) {
+	struct s_main_header	*main_header = (struct s_main_header *)memory;
+	
+    if (!memory) {
+		return 0;
+	}
+	while (main_header != NULL) {
+        char *page_start = (char *)main_header;
+
+        if (ptr_to_find->head == page_start) {
+            return (char *)ptr_to_find;
+        }
+		main_header = (struct s_main_header *)main_header->next;
+	}
+
+    return NULL;
 }

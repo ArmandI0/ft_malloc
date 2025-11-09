@@ -1,3 +1,8 @@
+
+ifeq ($(HOSTTYPE),)
+HOSTTYPE := $(shell uname -m)_$(shell uname -s)
+endif
+
 #-PATH FILES-#
 
 SRC_DIR			= src
@@ -9,7 +14,6 @@ LIBFT			= lib/libft
 LIBFT_A			= $(LIBFT)/libft.a
 
 SRCS			= \
-				main.c \
 				malloc.c \
 				free.c \
 				realloc.c \
@@ -25,24 +29,24 @@ D_OBJS			= mkdir -p $(@D)
 #-UTILS-#
 
 CC 				= cc
-CFLAGS 			= -Wall -Wextra -Werror -g 
-NAME 			= ft_ping
+CFLAGS 			= -Wall -Wextra -Werror -g -fPIC
+NAME 			= libft_malloc_$(HOSTTYPE).so
 RM 				= rm -f
 RMR				= rm -rf
 
 #-RULES-#
 
-all:$(LIBFT_A) 	$(NAME)
+all: $(LIBFT_A) $(NAME)
 
 $(LIBFT_A):
 				@make -C $(LIBFT)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-				$(D_OBJS)
+				@mkdir -p $(@D)
 				$(CC) $(CFLAGS) -c -o $@ $<
 
 $(NAME): 		$(OBJS)
-				@$(CC) $(CFLAGS) $(OBJS) $(LIBFT_A) -o $(NAME)
+				@$(CC) $(CFLAGS) -shared $(OBJS) $(LIBFT_A) -o $(NAME)
 				
 clean:
 				@$(RMR) $(OBJ_DIR)

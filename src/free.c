@@ -1,5 +1,22 @@
 #include "../include/malloc.h"
-#include <stdio.h>
+
+char *verify_ptr(struct s_bloc_header *ptr) {
+	struct s_memory_operation	op;
+	char						*ptr_verify = NULL;
+
+	op.type = VERIFY_PTR;
+	op.free.ptr = ptr;
+	ptr_verify = tiny_malloc(&op);
+	if (ptr_verify) {
+		return ptr_verify;
+	}
+	small_malloc(&op);
+	if (ptr_verify) {
+		return ptr_verify;
+	}
+	ptr_verify = large_malloc(&op);
+	return ptr_verify;
+}
 
 void free_op(char *memory, struct s_bloc_header *ptr) {
 	struct s_main_header	*main_header = (struct s_main_header *)memory;
@@ -22,7 +39,11 @@ void free(void *ptr) {
 	}
 
     bloc_header = (struct s_bloc_header *)((char *)ptr - HEADER_SIZE);
-	
+
+	if (verify_ptr(bloc_header) == NULL) {
+		return;
+	}
+
 	op.type = FREE;
 	op.free.ptr = bloc_header;
 	

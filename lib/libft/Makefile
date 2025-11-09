@@ -53,7 +53,7 @@ OBJS		= $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 D_OBJS		= mkdir -p $(@D)
 
 CC 			= cc
-CFLAGS 		= -Wall -Wextra -Werror
+CFLAGS 		= -Wall -Wextra -Werror -fPIC
 NAME 		= libft.a
 
 RM 			= rm -f

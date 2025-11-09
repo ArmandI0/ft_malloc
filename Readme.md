@@ -1,7 +1,8 @@
-1048576 
+```
+cc mon_programme.c -o mon_programme -L. -lft_malloc
+➜  ft_malloc git:(main) ✗ /usr/bin/time -v ./test0
 
-256*64
-
+```
 
 [Header principal][Header secondaire][Bloc mem][Header secondaire][Bloc mem]
 
