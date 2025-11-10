@@ -6,6 +6,7 @@ char *init_map(const size_t bloc_size) {
 	struct s_main_header	header;
 	struct s_bloc_header	bloc_header;
 
+	ft_printf("INIT MAP %d \n", bloc_size);
 
 	// define size of mmap
 	if (bloc_size <= TINY) {
@@ -97,12 +98,15 @@ void	*malloc(size_t size) {
 	op.malloc.size = size;
 
 	if (size <= TINY) {
+		//ft_printf("TINY and size = %d\n", size);
 		return tiny_malloc(&op);
 	}
 	else if (size <= SMALL) {
+		//ft_printf("SMALL and size = %d\n", size);
 		return small_malloc(&op);
 	}
 	else {
+		//ft_printf("LARGE and size = %d\n", size);
 		return large_malloc(&op);
 	}
 	return NULL;

@@ -1,4 +1,3 @@
-
 int main()
 {
     int i;
@@ -7,7 +6,7 @@ int main()
     i = 0;
     while (i < 1024)
     {
-    i++;
+        i++;
     }
     return (0);
 }

@@ -31,12 +31,14 @@ D_OBJS			= mkdir -p $(@D)
 CC 				= cc
 CFLAGS 			= -Wall -Wextra -Werror -g -fPIC
 NAME 			= libft_malloc_$(HOSTTYPE).so
+SYMLINK         = libft_malloc.so
 RM 				= rm -f
 RMR				= rm -rf
 
 #-RULES-#
 
 all: $(LIBFT_A) $(NAME)
+	@ln -sf $(NAME) $(SYMLINK)
 
 $(LIBFT_A):
 				@make -C $(LIBFT)
@@ -52,8 +54,8 @@ clean:
 				@$(RMR) $(OBJ_DIR)
 				@make -C $(LIBFT) clean
 
-fclean: 		clean
-				@$(RM) $(NAME)
+fclean:         clean
+				@$(RM) $(NAME) $(SYMLINK)
 				@make -C $(LIBFT) fclean
 
 re:				fclean all

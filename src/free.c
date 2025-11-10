@@ -39,7 +39,6 @@ void free(void *ptr) {
 	}
 
     bloc_header = (struct s_bloc_header *)((char *)ptr - HEADER_SIZE);
-
 	if (verify_ptr(bloc_header) == NULL) {
 		return;
 	}

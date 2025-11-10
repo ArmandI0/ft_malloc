@@ -3,7 +3,9 @@ cc mon_programme.c -o mon_programme -L. -lft_malloc
 ➜  ft_malloc git:(main) ✗ /usr/bin/time -v ./test0
 
 ```
-
+```
+    export LD_PRELOAD=./libft_malloc_x86_64_Linux.so
+```
 [Header principal][Header secondaire][Bloc mem][Header secondaire][Bloc mem]
 
 
