@@ -38,58 +38,69 @@ char *init_map(const size_t bloc_size) {
 	return memory;
 }
 
-char *malloc_op(const char *memory, const size_t size) {
-	struct s_main_header	*header = (struct s_main_header *)memory;
-	struct s_bloc_header	*bloc_header = (struct s_bloc_header *)((char *)memory + HEADER_SIZE);
-	struct s_bloc_header	new_bloc_header;
-	int						nb_of_blocs;
-	char					*ptr_allocated_bloc = NULL;
+char *malloc_op( const char *memory, const size_t size, struct s_memory_operation *op) {
+    struct s_main_header	*header = (struct s_main_header *)memory;
+    struct s_bloc_header	*bloc_header;
+    struct s_bloc_header	new_bloc_header;
+    int                 	nb_of_blocs;
+    char                	*ptr_allocated_bloc = NULL;
+	struct s_bloc_header 	**maximum_allocated_ptr = op->maximum_allocated_ptr;
+    char                 	**current_mmap_allocated = op->current_mmap_allocated;
 
-	if (size <= TINY) {
-		nb_of_blocs = NB_TINY_BLOCS;
-	}
-	else if (size <= SMALL) {
-		nb_of_blocs = NB_SMALL_BLOCS;
-	}
-	else {
-		nb_of_blocs = 1;
-	}
+    if (size <= TINY) {
+        nb_of_blocs = NB_TINY_BLOCS;
+    }
+    else if (size <= SMALL) {
+        nb_of_blocs = NB_SMALL_BLOCS;
+    }
+    else {
+        nb_of_blocs = 1;
+    }
 
-	while (true) {
-		for (int i = 0; i < nb_of_blocs; i++) {	//find free bloc
-			if (bloc_header->allocated == 0) {			// Bloc allocation
-				ptr_allocated_bloc = ((char*)bloc_header + HEADER_SIZE);
-				bloc_header->allocated = size;
-				// create a new header_bloc
-				if (i != nb_of_blocs - 1) {
-					struct s_bloc_header *next_bloc = (struct s_bloc_header *)((char *)bloc_header + HEADER_SIZE + header->size);
-					// If next bloc are availaible
-					if (next_bloc->head != (char *)header) {
-						new_bloc_header.allocated = 0;
-						new_bloc_header.head = (char *)header;
-						ft_memcpy(next_bloc, &new_bloc_header, sizeof(struct s_bloc_header));
-					}
-				}
-				return ptr_allocated_bloc;
-			}
-			bloc_header = (struct s_bloc_header *)((char *)bloc_header + HEADER_SIZE + header->size);
-		}
-		if (header->next != NULL) {
-			header = (struct s_main_header *)header->next;
-			bloc_header = (struct s_bloc_header *)((char *)header + HEADER_SIZE);
-		}
-		else {
-			char *tmp = init_map(size);
-			if (tmp == NULL) {
-				return NULL;
-			}
-			header->next = tmp;
-			header = (struct s_main_header *)tmp;
-			bloc_header = (struct s_bloc_header *)((char *)header + HEADER_SIZE);
-		}
-	}
+    while (true) {
+        bloc_header = (struct s_bloc_header *)((char *)header + HEADER_SIZE);
+
+        for (int i = 0; i < nb_of_blocs; i++) { //find free bloc
+            if (bloc_header->allocated == 0 && header->size >= size) { 
+        		// Bloc allocation
+                ptr_allocated_bloc = ((char*)bloc_header + HEADER_SIZE);
+                bloc_header->allocated = size;
+
+				// if the mmap area under init
+                if ((char *)header == *current_mmap_allocated) { 
+                    
+                    if (i != nb_of_blocs - 1) {
+                        struct s_bloc_header *next_bloc = (struct s_bloc_header *)((char *)bloc_header + HEADER_SIZE + header->size);
+                        
+                        if (next_bloc >= *maximum_allocated_ptr) {
+                            new_bloc_header.allocated = 0;
+                            new_bloc_header.head = (char *)header;
+                            ft_memcpy(next_bloc, &new_bloc_header, sizeof(struct s_bloc_header)); 
+                            *maximum_allocated_ptr = (struct s_bloc_header *)((char *)next_bloc + HEADER_SIZE + header->size);
+                        }
+                    }
+                }
+                return ptr_allocated_bloc;
+            }
+            bloc_header = (struct s_bloc_header *)((char *)bloc_header + HEADER_SIZE + header->size);
+        }
+        if (header->next != NULL) {
+            header = (struct s_main_header *)header->next;
+        }
+        else {
+            char *tmp = init_map(size);
+            if (tmp == NULL) {
+                return NULL;
+            }
+            header->next = tmp;
+            header = (struct s_main_header *)tmp;
+            
+            *current_mmap_allocated = tmp;
+            struct s_main_header *new_header = (struct s_main_header *)tmp;
+            *maximum_allocated_ptr = (struct s_bloc_header *)(tmp + HEADER_SIZE + sizeof(struct s_bloc_header) + new_header->size);
+        }
+    }
 }
-
 
 void	*malloc(size_t size) {
 	struct s_memory_operation	op;
@@ -98,15 +109,12 @@ void	*malloc(size_t size) {
 	op.malloc.size = size;
 
 	if (size <= TINY) {
-		//ft_printf("TINY and size = %d\n", size);
 		return tiny_malloc(&op);
 	}
 	else if (size <= SMALL) {
-		//ft_printf("SMALL and size = %d\n", size);
 		return small_malloc(&op);
 	}
 	else {
-		//ft_printf("LARGE and size = %d\n", size);
 		return large_malloc(&op);
 	}
 	return NULL;

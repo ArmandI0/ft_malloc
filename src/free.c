@@ -10,7 +10,7 @@ char *verify_ptr(struct s_bloc_header *ptr) {
 	if (ptr_verify) {
 		return ptr_verify;
 	}
-	small_malloc(&op);
+	ptr_verify = small_malloc(&op);
 	if (ptr_verify) {
 		return ptr_verify;
 	}

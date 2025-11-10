@@ -55,6 +55,8 @@ struct s_realloc {
 
 struct s_memory_operation {
 	enum e_operation		type;
+	struct s_bloc_header    **maximum_allocated_ptr;
+    char                    **current_mmap_allocated;
 	union {
 		struct s_malloc		malloc;
 		struct s_free		free;
@@ -64,7 +66,7 @@ struct s_memory_operation {
 
 char 	*init_map(const size_t bloc_size);
 void	*malloc(size_t size);
-char 	*malloc_op(const char *memory, const size_t size);
+char 	*malloc_op( const char *memory, const size_t size, struct s_memory_operation *op);
 void	free(void *ptr);
 void 	free_op(char *memory, struct s_bloc_header *ptr);
 void	*realloc(void *ptr, size_t size);
