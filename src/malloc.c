@@ -38,8 +38,8 @@ char *init_map(const size_t bloc_size) {
 	return memory;
 }
 
-char *malloc_op( const char *memory, const size_t size, struct s_memory_operation *op) {
-    struct s_main_header	*header = (struct s_main_header *)memory;
+char *malloc_op(struct s_memory_operation *op) {
+    struct s_main_header	*header = (struct s_main_header *)op->memory;
     struct s_bloc_header	*bloc_header;
     struct s_bloc_header	new_bloc_header;
     int                 	nb_of_blocs;
@@ -47,10 +47,10 @@ char *malloc_op( const char *memory, const size_t size, struct s_memory_operatio
 	struct s_bloc_header 	**maximum_allocated_ptr = op->maximum_allocated_ptr;
     char                 	**current_mmap_allocated = op->current_mmap_allocated;
 
-    if (size <= TINY) {
+    if (op->malloc.size <= TINY) {
         nb_of_blocs = NB_TINY_BLOCS;
     }
-    else if (size <= SMALL) {
+    else if (op->malloc.size <= SMALL) {
         nb_of_blocs = NB_SMALL_BLOCS;
     }
     else {
@@ -61,10 +61,10 @@ char *malloc_op( const char *memory, const size_t size, struct s_memory_operatio
         bloc_header = (struct s_bloc_header *)((char *)header + HEADER_SIZE);
 
         for (int i = 0; i < nb_of_blocs; i++) { //find free bloc
-            if (bloc_header->allocated == 0 && header->size >= size) { 
+            if (bloc_header->allocated == 0 && header->size >= op->malloc.size) { 
         		// Bloc allocation
                 ptr_allocated_bloc = ((char*)bloc_header + HEADER_SIZE);
-                bloc_header->allocated = size;
+                bloc_header->allocated = op->malloc.size;
 
 				// if the mmap area under init
                 if ((char *)header == *current_mmap_allocated) { 
@@ -88,7 +88,7 @@ char *malloc_op( const char *memory, const size_t size, struct s_memory_operatio
             header = (struct s_main_header *)header->next;
         }
         else {
-            char *tmp = init_map(size);
+            char *tmp = init_map(op->malloc.size);
             if (tmp == NULL) {
                 return NULL;
             }

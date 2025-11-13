@@ -18,12 +18,12 @@ char *verify_ptr(struct s_bloc_header *ptr) {
 	return ptr_verify;
 }
 
-void free_op(char *memory, struct s_bloc_header *ptr) {
-	struct s_main_header	*main_header = (struct s_main_header *)memory;
+void free_op(struct s_memory_operation *op) {
+	struct s_main_header	*main_header = (struct s_main_header *)op->memory;
 
 	while (main_header != NULL) {
-		if ((char *)main_header == ptr->head) {
-			ptr->allocated = 0;
+		if ((char *)main_header == op->free.ptr->head) {
+			op->free.ptr->allocated = 0;
 			return;
 		}
 		main_header = (struct s_main_header *)main_header->next;

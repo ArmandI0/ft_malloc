@@ -24,9 +24,9 @@ void show_alloc_mem_ex() {
 	large_malloc(&op);
 }
 
-void show_mem_op(const char* memory) {
+void show_mem_op(struct s_memory_operation *op) {
 	size_t					nb_of_blocs;
-	struct s_main_header	*main_header = (struct s_main_header *)memory;
+	struct s_main_header	*main_header = (struct s_main_header *)op->memory;
 	struct s_bloc_header	*bloc_header;
 	size_t					count = 0;
 
@@ -62,9 +62,9 @@ void show_mem_op(const char* memory) {
 	ft_printf("number of bloc : %z\n", count);
 }
 
-void show_mem_hex_op(const char* memory) {
+void show_mem_hex_op(struct s_memory_operation *op) {
 	size_t					nb_of_blocs;
-	struct s_main_header	*main_header = (struct s_main_header *)memory;
+	struct s_main_header	*main_header = (struct s_main_header *)op->memory;
 	struct s_bloc_header	*bloc_header;
 	size_t					count = 0;
 

@@ -1,27 +1,33 @@
 #include "../include/malloc.h"
 
-void	*realloc_op(char *memory, struct s_bloc_header *ptr, size_t size) {
-	struct s_main_header	*main_header = (struct s_main_header *)ptr->head;
+void	*realloc_op(struct s_memory_operation *op) {
+	struct s_main_header	*main_header = (struct s_main_header *)op->memory;
+	struct s_bloc_header	*ptr_to_realloc = op->realloc.ptr;
 	void					*ptr_allocated_bloc = NULL;
 	void					*old_ptr = NULL;
 
-	memory++; // DOIT SERVIR POUR APPELER MALLOC OP 
-
 	while (main_header != NULL) {
-		if ((char *)main_header == ptr->head) {
-			if (size <= main_header->size) {
-				ptr_allocated_bloc = ((char*)ptr + HEADER_SIZE);
-				ptr->allocated = size;
+		if ((char *)main_header == ptr_to_realloc->head) {
+			if (op->realloc.size <= main_header->size) {
+				ptr_allocated_bloc = ((char*)ptr_to_realloc + HEADER_SIZE);
+				ptr_to_realloc->allocated = op->realloc.size;
 				return ptr_allocated_bloc;
 			}
 			else {
-				ptr_allocated_bloc = malloc(size);
+				if (main_header->size > SMALL && op->realloc.size > SMALL) {
+					op->type = MALLOC;
+					op->malloc.size = op->realloc.size;
+					ptr_allocated_bloc = malloc_op(op);
+				}
+				else {
+					ptr_allocated_bloc = malloc(op->realloc.size);
+				}
 				if (ptr_allocated_bloc == NULL) {
                     return NULL;
                 }
-				old_ptr = (void*)((char*)ptr + HEADER_SIZE);
-				ft_memcpy(ptr_allocated_bloc, old_ptr, ptr->allocated);
-				ptr->allocated = 0; // free bloc
+				old_ptr = (void*)((char*)ptr_to_realloc + HEADER_SIZE);
+				ft_memcpy(ptr_allocated_bloc, old_ptr, ptr_to_realloc->allocated);
+				ptr_to_realloc->allocated = 0; // free bloc
 				return ptr_allocated_bloc;
 			}
 		}

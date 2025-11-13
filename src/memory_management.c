@@ -1,6 +1,6 @@
 #include "../include/malloc.h"
 
-static char *do_operation(char *memory, struct s_memory_operation *op);
+static char *do_operation(struct s_memory_operation *op);
 static char *verify_ptr_op(char *memory, struct s_bloc_header *ptr_to_find);
 
 char *tiny_malloc(struct s_memory_operation *op) {
@@ -24,7 +24,7 @@ char *tiny_malloc(struct s_memory_operation *op) {
 	op->current_mmap_allocated = &current_mmap_allocated;
 	op->maximum_allocated_ptr = &maximum_allocated_ptr;
 
-	ptr = do_operation(memory, op);
+	ptr = do_operation(op);
 	pthread_mutex_unlock(&lock);
 	return ptr;
 }
@@ -50,7 +50,7 @@ char *small_malloc(struct s_memory_operation *op) {
 	op->current_mmap_allocated = &current_mmap_allocated;
 	op->maximum_allocated_ptr = &maximum_allocated_ptr;
 
-	ptr = do_operation(memory, op);
+	ptr = do_operation(op);
 	pthread_mutex_unlock(&lock);
 	return ptr;
 }
@@ -73,35 +73,36 @@ char *large_malloc(struct s_memory_operation *op) {
         struct s_main_header *header = (struct s_main_header *)memory;
         maximum_allocated_ptr = (struct s_bloc_header *)(memory + HEADER_SIZE + sizeof(struct s_bloc_header) + header->size);
 	}
+	op->memory = memory;
 	op->current_mmap_allocated = &current_mmap_allocated;
 	op->maximum_allocated_ptr = &maximum_allocated_ptr;
 
-	ptr = do_operation(memory, op);
+	ptr = do_operation(op);
 	//pthread_mutex_unlock(&lock);
 	return ptr;
 }
 
-static char *do_operation(char *memory, struct s_memory_operation *op) {
+static char *do_operation(struct s_memory_operation *op) {
 	char *ptr = NULL;
 
 	switch (op->type) {
 		case MALLOC:
-			ptr = malloc_op(memory, op->malloc.size, op);
+			ptr = malloc_op(op);
 			break;
 		case FREE:
-			free_op(memory, op->free.ptr);
+			free_op(op);
 			break;
 		case SHOW_MEMORY:
-			show_mem_op(memory);
+			show_mem_op(op);
 			break;
 		case REALLOC:
-			ptr = realloc_op(memory, op->realloc.ptr, op->realloc.size);
+			ptr = realloc_op(op);
 			break;
 		case SHOW_MEMORY_HEX:
-			show_mem_hex_op(memory);
+			show_mem_hex_op(op);
 			break;
 		case VERIFY_PTR:
-			ptr = verify_ptr_op(memory, op->free.ptr);
+			ptr = verify_ptr_op(op->memory, op->free.ptr);
 			break;
 		default:
 			ptr = NULL;
