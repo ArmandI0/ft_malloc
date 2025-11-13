@@ -6,8 +6,6 @@ char *init_map(const size_t bloc_size) {
 	struct s_main_header	header;
 	struct s_bloc_header	bloc_header;
 
-	ft_printf("INIT MAP %d \n", bloc_size);
-
 	// define size of mmap
 	if (bloc_size <= TINY) {
 		page_size = sysconf(_SC_PAGESIZE) * NB_TINY_PAGE;

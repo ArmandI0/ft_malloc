@@ -46,9 +46,6 @@ void	*realloc(void *ptr, size_t size) {
 	}
 
     bloc_header = (struct s_bloc_header *)((char *)ptr - HEADER_SIZE);
-	if (verify_ptr(bloc_header) == NULL) {
-		return NULL;
-	}
 	op.type = REALLOC;
 	op.realloc.ptr = bloc_header;
 	op.realloc.size = size;
