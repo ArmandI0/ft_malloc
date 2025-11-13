@@ -6,6 +6,10 @@ void	*realloc_op(struct s_memory_operation *op) {
 	void					*ptr_allocated_bloc = NULL;
 	void					*old_ptr = NULL;
 
+	if (!main_header) {
+		return NULL;
+	}
+
 	while (main_header != NULL) {
 		if ((char *)main_header == ptr_to_realloc->head) {
 			if (op->realloc.size <= main_header->size) {

@@ -6,12 +6,20 @@ static void print_hex_offset(size_t offset);
 
 void show_alloc_mem() {
 	struct s_memory_operation	op;
+	size_t						size = 0;
 
 	op.type = SHOW_MEMORY;
+	op.show_mem.size = 0;
 
 	tiny_malloc(&op);
+	size += op.show_mem.size;
+	op.show_mem.size = 0;
 	small_malloc(&op);
+	size += op.show_mem.size;
+	op.show_mem.size = 0;
 	large_malloc(&op);
+	size += op.show_mem.size;
+	ft_printf("Total : %z bytes", size);
 }
 
 void show_alloc_mem_ex() {
@@ -28,19 +36,23 @@ void show_mem_op(struct s_memory_operation *op) {
 	size_t					nb_of_blocs;
 	struct s_main_header	*main_header = (struct s_main_header *)op->memory;
 	struct s_bloc_header	*bloc_header;
-	size_t					count = 0;
+	size_t					size = 0;
+
+	if (!main_header) {
+		return;
+	}
 
 	switch (main_header->size) {
 		case TINY:
-			ft_printf("TINY : \n");
+			ft_printf("TINY : %p\n", (char *)main_header);
 			nb_of_blocs = NB_TINY_BLOCS;
 			break;
 		case SMALL:
-			ft_printf("SMALL : \n");
+			ft_printf("SMALL : %p\n", (char *)main_header);
 			nb_of_blocs = NB_SMALL_BLOCS;
 			break;
 		default:
-			ft_printf("LARGE : \n");
+			ft_printf("LARGE : %p\n", (char *)main_header);
 			nb_of_blocs = 1;
 			break;
 	}
@@ -53,13 +65,13 @@ void show_mem_op(struct s_memory_operation *op) {
 				void *start = (char *)bloc_header + HEADER_SIZE;
 				void *end = (char *)start + bloc_header->allocated;
 				ft_printf("%p - %p : %z \n", start, end, bloc_header->allocated);
-				count++;
+				size += bloc_header->allocated;
 			}
 			bloc_header = (struct s_bloc_header *)((char *)bloc_header + HEADER_SIZE + main_header->size);
 		}
 		main_header = (struct s_main_header *)main_header->next;
 	}
-	ft_printf("number of bloc : %z\n", count);
+	op->show_mem.size = size;
 }
 
 void show_mem_hex_op(struct s_memory_operation *op) {
@@ -67,6 +79,10 @@ void show_mem_hex_op(struct s_memory_operation *op) {
 	struct s_main_header	*main_header = (struct s_main_header *)op->memory;
 	struct s_bloc_header	*bloc_header;
 	size_t					count = 0;
+
+	if (!main_header) {
+		return;
+	}
 
 	switch (main_header->size) {
 		case TINY:

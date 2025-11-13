@@ -3,6 +3,10 @@
 void free_op(struct s_memory_operation *op) {
 	struct s_main_header	*main_header = (struct s_main_header *)op->memory;
 
+	if (!main_header) {
+		return;
+	}
+
 	while (main_header != NULL) {
 		if ((char *)main_header == op->free.ptr->head) {
 			op->free.ptr->allocated = 0;

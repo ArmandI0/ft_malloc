@@ -52,6 +52,10 @@ struct s_realloc {
 	size_t					size;
 };
 
+struct s_show_mem {
+	size_t					size;
+};
+
 struct s_memory_operation {
 	enum e_operation		type;
 	char					*memory;
@@ -61,6 +65,7 @@ struct s_memory_operation {
 		struct s_malloc		malloc;
 		struct s_free		free;
 		struct s_realloc	realloc;
+		struct s_show_mem	show_mem;
 	};
 };
 
