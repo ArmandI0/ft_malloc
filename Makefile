@@ -56,6 +56,7 @@ clean:
 
 fclean:         clean
 				@$(RM) $(NAME) $(SYMLINK)
+				@$(RM) libft_malloc_*.so
 				@make -C $(LIBFT) fclean
 
 re:				fclean all

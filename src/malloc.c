@@ -2,7 +2,7 @@
 
 char *init_map(const size_t bloc_size) {
 	char					*memory = NULL;
-	int						page_size;
+	size_t					page_size;
 	struct s_main_header	header;
 	struct s_bloc_header	bloc_header;
 
@@ -18,10 +18,13 @@ char *init_map(const size_t bloc_size) {
 	else {
 		header.size = bloc_size;
 		page_size = bloc_size + HEADER_SIZE + HEADER_SIZE; // space for main_header + bloc_header
+        if (bloc_size > page_size) {
+            return NULL;
+        }
 	}
 
 	memory = mmap(NULL, page_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-	if (!memory) {
+	if (memory == MAP_FAILED) {
 		return NULL;
 	}
 	// Init main header

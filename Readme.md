@@ -1,11 +1,22 @@
-```
-cc mon_programme.c -o mon_programme -L. -lft_malloc
-➜  ft_malloc git:(main) ✗ /usr/bin/time -v ./test0
+## Usage :
 
 ```
+cc mon_programme.c -o mon_programme -L. -lft_malloc
+➜  ft_malloc git:(main) ✗ ./run.sh ./mon_programme
+
 ```
-    export LD_PRELOAD=./libft_malloc.so
+
+
+Script pour link la lib 
+```bash
+    #!/bin/sh
+    export LD_LIBRARY_PATH=.
+    export LD_PRELOAD="./libft_malloc.so"
+    "$@"
 ```
+
+## Note struct :
+
 [Header principal][Header secondaire][Bloc mem][Header secondaire][Bloc mem]
 
 
