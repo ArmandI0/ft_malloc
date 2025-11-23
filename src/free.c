@@ -1,7 +1,7 @@
 #include "../include/malloc.h"
 
 void free_op(struct s_memory_operation *op) {
-	struct s_main_header	*main_header = (struct s_main_header *)op->memory;
+	struct s_main_header	*main_header = (struct s_main_header *)op->area->memory;
 
 	if (!main_header) {
 		return;

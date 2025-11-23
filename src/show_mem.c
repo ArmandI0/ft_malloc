@@ -34,7 +34,7 @@ void show_alloc_mem_ex() {
 
 void show_mem_op(struct s_memory_operation *op) {
 	size_t					nb_of_blocs;
-	struct s_main_header	*main_header = (struct s_main_header *)op->memory;
+	struct s_main_header	*main_header = (struct s_main_header *)op->area->memory;
 	struct s_bloc_header	*bloc_header;
 	size_t					size = 0;
 
@@ -76,7 +76,7 @@ void show_mem_op(struct s_memory_operation *op) {
 
 void show_mem_hex_op(struct s_memory_operation *op) {
 	size_t					nb_of_blocs;
-	struct s_main_header	*main_header = (struct s_main_header *)op->memory;
+	struct s_main_header	*main_header = (struct s_main_header *)op->area->memory;
 	struct s_bloc_header	*bloc_header;
 	size_t					count = 0;
 

@@ -29,6 +29,12 @@ enum e_operation {
 	SHOW_MEMORY_HEX,
 };
 
+enum e_map_size {
+	TINY_MAP,
+	SMALL_MAP,
+	LARGE_MAP,
+};
+
 struct s_main_header {	// 16 bytes
 	size_t	size;
 	char	*next;
@@ -56,11 +62,17 @@ struct s_show_mem {
 	size_t					size;
 };
 
-struct s_memory_operation {
-	enum e_operation		type;
+struct s_memory {
 	char					*memory;
-	struct s_bloc_header    **maximum_allocated_ptr;
-    char                    **current_mmap_allocated;
+	struct s_bloc_header	*maximum_allocated_ptr;
+	char					*current_mmap_allocated;
+};
+
+struct s_memory_operation {
+	enum	e_operation	type;
+	enum	e_map_size	map_size;
+	struct	s_memory	*area;
+	
 	union {
 		struct s_malloc		malloc;
 		struct s_free		free;

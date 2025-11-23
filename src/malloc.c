@@ -1,61 +1,22 @@
 #include "../include/malloc.h"
 
-char *init_map(const size_t bloc_size) {
-	char					*memory = NULL;
-	size_t					page_size;
-	struct s_main_header	header;
-	struct s_bloc_header	bloc_header;
-
-	// define size of mmap
-	if (bloc_size <= TINY) {
-		page_size = sysconf(_SC_PAGESIZE) * NB_TINY_PAGE;
-		header.size = TINY;
-	}
-	else if (bloc_size <= SMALL) {
-		header.size = SMALL;
-		page_size = sysconf(_SC_PAGESIZE) * NB_SMALL_PAGE;
-	}
-	else {
-		header.size = bloc_size;
-		page_size = bloc_size + HEADER_SIZE + HEADER_SIZE; // space for main_header + bloc_header
-        if (bloc_size > page_size) {
-            return NULL;
-        }
-	}
-
-	memory = mmap(NULL, page_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-	if (memory == MAP_FAILED) {
-		return NULL;
-	}
-	// Init main header
-	header.next = NULL;
-	ft_memcpy(memory, &header, sizeof(struct s_main_header));
-
-	//Init first bloc_header
-	bloc_header.allocated = 0;
-	bloc_header.head = memory;
-	ft_memcpy(memory + HEADER_SIZE, &bloc_header, sizeof(struct s_bloc_header));
-
-	return memory;
-}
-
 char *malloc_op(struct s_memory_operation *op) {
-    struct s_main_header	*header = (struct s_main_header *)op->memory;
+    struct s_main_header	*header = (struct s_main_header *)op->area->memory;
     struct s_bloc_header	*bloc_header;
     struct s_bloc_header	new_bloc_header;
     int                 	nb_of_blocs;
     char                	*ptr_allocated_bloc = NULL;
-	struct s_bloc_header 	**maximum_allocated_ptr = op->maximum_allocated_ptr;
-    char                 	**current_mmap_allocated = op->current_mmap_allocated;
 
-    if (op->malloc.size <= TINY) {
-        nb_of_blocs = NB_TINY_BLOCS;
-    }
-    else if (op->malloc.size <= SMALL) {
-        nb_of_blocs = NB_SMALL_BLOCS;
-    }
-    else {
-        nb_of_blocs = 1;
+    switch (op->map_size) {
+        case TINY_MAP:
+            nb_of_blocs = NB_TINY_BLOCS;
+            break;
+        case SMALL_MAP:
+            nb_of_blocs = NB_SMALL_BLOCS;
+            break;
+        case LARGE_MAP:
+            nb_of_blocs = 1;
+            break;
     }
 
     while (true) {
@@ -68,16 +29,16 @@ char *malloc_op(struct s_memory_operation *op) {
                 bloc_header->allocated = op->malloc.size;
 
 				// if the mmap area under init
-                if ((char *)header == *current_mmap_allocated) { 
+                if ((char *)header == op->area->current_mmap_allocated) { 
                     
                     if (i != nb_of_blocs - 1) {
                         struct s_bloc_header *next_bloc = (struct s_bloc_header *)((char *)bloc_header + HEADER_SIZE + header->size);
                         
-                        if (next_bloc >= *maximum_allocated_ptr) {
+                        if (next_bloc >= op->area->maximum_allocated_ptr) {
                             new_bloc_header.allocated = 0;
                             new_bloc_header.head = (char *)header;
                             ft_memcpy(next_bloc, &new_bloc_header, sizeof(struct s_bloc_header)); 
-                            *maximum_allocated_ptr = (struct s_bloc_header *)((char *)next_bloc + HEADER_SIZE + header->size);
+                            op->area->maximum_allocated_ptr = (struct s_bloc_header *)((char *)next_bloc + HEADER_SIZE + header->size);
                         }
                     }
                 }
@@ -96,9 +57,11 @@ char *malloc_op(struct s_memory_operation *op) {
             header->next = tmp;
             header = (struct s_main_header *)tmp;
             
-            *current_mmap_allocated = tmp;
-            struct s_main_header *new_header = (struct s_main_header *)tmp;
-            *maximum_allocated_ptr = (struct s_bloc_header *)(tmp + HEADER_SIZE + sizeof(struct s_bloc_header) + new_header->size);
+            if (op->map_size != LARGE_MAP) {
+                struct s_main_header *new_header = (struct s_main_header *)tmp;
+                op->area->current_mmap_allocated = tmp;
+                op->area->maximum_allocated_ptr = (struct s_bloc_header *)(tmp + HEADER_SIZE + sizeof(struct s_bloc_header) + new_header->size);
+        	}
         }
     }
 }
@@ -108,6 +71,9 @@ void	*malloc(size_t size) {
 
 	op.type = MALLOC;
 	op.malloc.size = size;
+    if (size == 0) {
+        return NULL;
+    }
 
 	if (size <= TINY) {
 		return tiny_malloc(&op);
