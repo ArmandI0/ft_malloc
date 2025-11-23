@@ -33,8 +33,19 @@ void	*realloc_op(struct s_memory_operation *op) {
                     return NULL;
                 }
 				old_ptr = (void*)((char*)ptr_to_realloc + HEADER_SIZE);
-				ft_memcpy(ptr_allocated_bloc, old_ptr, ptr_to_realloc->allocated);
-				ptr_to_realloc->allocated = 0; // free bloc
+				size_t copy_size;
+				if (ptr_to_realloc->allocated < op->realloc.size) {
+					copy_size = ptr_to_realloc->allocated;
+				}
+				else {
+					copy_size = op->realloc.size;
+				}
+				ft_memcpy(ptr_allocated_bloc, old_ptr, copy_size);
+				
+				op->type = FREE;
+				op->free.ptr = ptr_to_realloc;
+				free_op(op);
+				
 				return ptr_allocated_bloc;
 			}
 		}
