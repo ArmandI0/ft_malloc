@@ -49,8 +49,13 @@ void	*realloc(void *ptr, size_t size) {
 	struct s_memory_operation	op;
 
     if (!ptr) {
-        return NULL;
+        return malloc(size);
 	}
+
+    if (size == 0) {
+        free(ptr);
+        return NULL;
+    }
 
     bloc_header = (struct s_bloc_header *)((char *)ptr - HEADER_SIZE);
 	op.type = REALLOC;
