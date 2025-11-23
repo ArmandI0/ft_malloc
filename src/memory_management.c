@@ -1,41 +1,41 @@
-#include "../include/malloc.h"
+#include "../includes/malloc.h"
 
 static char *do_operation(struct s_memory_operation *op);
 
 char *tiny_malloc(struct s_memory_operation *op) {
-	static struct s_memory	*tiny_area = NULL;
+	static struct s_memory	tiny_area;
 	static pthread_mutex_t	lock = PTHREAD_MUTEX_INITIALIZER;
 	char					*ptr = NULL;
 
 	pthread_mutex_lock(&lock);
 	op->map_size = TINY_MAP;
-	op->area = tiny_area;
+	op->area = &tiny_area;
 	ptr = do_operation(op);
 	pthread_mutex_unlock(&lock);
 	return ptr;
 }
 
 char *small_malloc(struct s_memory_operation *op) {
-	static struct s_memory	*small_area = NULL;
+	static struct s_memory	small_area;
 	static pthread_mutex_t	lock = PTHREAD_MUTEX_INITIALIZER;
 	char					*ptr = NULL;
 
 	pthread_mutex_lock(&lock);
 	op->map_size = SMALL_MAP;
-	op->area = small_area;
+	op->area = &small_area;
 	ptr = do_operation(op);
 	pthread_mutex_unlock(&lock);
 	return ptr;
 }
 
 char *large_malloc(struct s_memory_operation *op) {
-	static struct s_memory	*large_area = NULL;
+	static struct s_memory	large_area;
 	static pthread_mutex_t	lock = PTHREAD_MUTEX_INITIALIZER;
 	char					*ptr = NULL;
 
 	pthread_mutex_lock(&lock);
 	op->map_size = LARGE_MAP;
-	op->area = large_area;
+	op->area = &large_area;
 	ptr = do_operation(op);
 	pthread_mutex_unlock(&lock);
 	return ptr;
@@ -44,14 +44,15 @@ char *large_malloc(struct s_memory_operation *op) {
 static char *do_operation(struct s_memory_operation *op) {
 	char *ptr = NULL;
 
-	if (op->area == NULL && op->type == MALLOC) {
+	if (op->area->memory == NULL && op->type == MALLOC) {
 		char *memory = init_map(op->malloc.size);
 		if (!memory) {
 			return NULL;
 		}
+		op->area->memory = memory;
 		if (op->map_size != LARGE_MAP) {
         	struct s_main_header *header = (struct s_main_header *)memory;
-        	op->area->current_mmap_allocated = op->area->memory;
+        	op->area->current_mmap_allocated = memory;
         	op->area->maximum_allocated_ptr = (struct s_bloc_header *)(memory + HEADER_SIZE + sizeof(struct s_bloc_header) + header->size);
 		}
 		else {
